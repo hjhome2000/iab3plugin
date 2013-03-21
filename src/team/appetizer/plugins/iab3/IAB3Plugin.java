@@ -59,11 +59,14 @@ public class IAB3Plugin {
 		iabHelper.startSetup(new OnIabSetupFinishedListener() {
 			@Override
 			public void onIabSetupFinished(IabResult result) {
+				Log("iabHelper.onIabSetupFinished");
 				if (!result.isSuccess()) {
+					Log("SetupFailed");
 					// Failed
 					unityListener.setupCompleted(IAB3UnityListener.RESULT_FAILED);
 					return;
 				}
+				Log("SetupSucceed");
 				unityListener.setupCompleted(IAB3UnityListener.RESULT_SUCCEED);
 			}
 		});
