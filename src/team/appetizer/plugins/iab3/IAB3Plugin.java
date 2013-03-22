@@ -47,6 +47,13 @@ public class IAB3Plugin {
 		return iabHelper.handleActivityResult(requestCode, resultCode, data);
 	}
 	
+	public void dispose() {
+		if (iabHelper == null)
+			return;
+		
+		iabHelper.dispose();
+	}
+	
 	// for unity side
 	public void create(Activity activity, String publicKey, boolean debug) {
 		Log("create");

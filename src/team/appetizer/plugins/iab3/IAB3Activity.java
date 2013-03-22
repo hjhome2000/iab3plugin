@@ -21,5 +21,12 @@ public class IAB3Activity extends UnityPlayerNativeActivity {
 		
 		super.onActivityResult(requestCode, resultCode, data);
 	}
+	
+	@Override
+	protected void onDestroy() {
+		// Very Important
+		IAB3Plugin.getInstance().dispose();
+		super.onDestroy();
+	}
 
 }
