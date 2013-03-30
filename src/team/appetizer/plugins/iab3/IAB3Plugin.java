@@ -79,27 +79,54 @@ public class IAB3Plugin {
 		});
 	}
 	
-	// Consume remaining item
-	public void consumeRemains(String productId) {
-		Log("consumeRemains");
-		final String sku = productId;
-		
+	// Inventory
+	public boolean isProductRemains(String productId) {
+		Log("isProductRemains");
 		if (iabHelper == null)
-			return;
+			return false;
 		
-		Log("iabHelper.queryInventory");
 		List<String> skus = new ArrayList<String>();
-		skus.add(sku);
+		skus.add(productId);
 		
 		try {
 			Inventory inv = iabHelper.queryInventory(false, skus);
 			if (inv == null)
-				return;
+				return false;
 			
-			final Purchase purchase = inv.getPurchase(sku);
+			if (inv.getPurchase(productId) != null)
+				return true; // remains
+		} catch (IabException e) {
+			e.printStackTrace();
+		}
+		
+		
+		return false;
+	}
+	
+	// Consume
+	public void consume(final String productId) {
+		Log("consumeRemains");
+		if (iabHelper == null) {
+			unityListener.consumeFailed(productId);
+			return;
+		}
+		
+		Log("iabHelper.queryInventory");
+		List<String> skus = new ArrayList<String>();
+		skus.add(productId);
+		
+		try {
+			Inventory inv = iabHelper.queryInventory(false, skus);
+			if (inv == null) {
+				unityListener.consumeFailed(productId);
+				return;
+			}
+			
+			final Purchase purchase = inv.getPurchase(productId);
 			
 			if (purchase == null) {
 				Log("purchase is null");
+				unityListener.consumeFailed(productId);
 				return;
 			}
 			
@@ -115,8 +142,10 @@ public class IAB3Plugin {
 						@Override
 						public void onConsumeFinished(Purchase purchase, IabResult result) {
 							Log("iabHelper.onConsumeFinished");
-							if (!result.isSuccess())
+							if (!result.isSuccess()) {
+								unityListener.consumeFailed(productId);
 								return;
+							}
 							// Succeed
 							Log("consumeCompleted");
 							unityListener.consumeCompleted(purchase.getSku());
@@ -134,9 +163,7 @@ public class IAB3Plugin {
 	 * 1. Send purchase.
 	 * 2. Receive message from onActivityResult.
 	 * 3. If Purchase failed, send failed message.
-	 *    If Purchase succeed, send consume.
-	 * 4. If Consume failed, send failed message.
-	 *    If Consume succeed, finally send succeed. 
+	 *    If Purchase succeed, send succeed message.
 	 */
 	private static final int REQUEST_PURCHASE = 100001;
 	private OnIabPurchaseFinishedListener purchaseFinishedListener = 
@@ -158,23 +185,7 @@ public class IAB3Plugin {
 			}
 			
 			// Succeed
-			// - Let's Consume purchased product.
-			iabHelper.consumeAsync(info, consumeFinishedListener);
-		}
-	};
-	
-	private OnConsumeFinishedListener consumeFinishedListener =
-		new OnConsumeFinishedListener() {
-		@Override
-		public void onConsumeFinished(Purchase purchase, IabResult result) {
-			if (!result.isSuccess()) {
-				// Failed
-				unityListener.purchaseFailed("");
-				return;
-			}
-			String productId = purchase.getSku();
-			
-			// Succeed
+			String productId = info.getSku();
 			unityListener.purchaseSucceed(productId);
 		}
 	};

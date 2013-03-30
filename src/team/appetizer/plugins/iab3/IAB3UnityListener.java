@@ -23,6 +23,10 @@ public class IAB3UnityListener {
 		UnityPlayer.UnitySendMessage(UNITY_OBJECT, "consumeCompleted", productId);
 	}
 	
+	public void consumeFailed(String productId) {
+		UnityPlayer.UnitySendMessage(UNITY_OBJECT, "consumeFailed", productId);
+	}
+	
 	public void setupCompleted(String result) {
 		UnityPlayer.UnitySendMessage(UNITY_OBJECT, "setupCompleted", result);
 	}
